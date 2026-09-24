@@ -46,16 +46,16 @@ flowchart LR
 
 ## Running it
 
-\`\`\`bash
+```bash
 sudo sysctl -w vm.max_map_count=262144
 docker compose up -d
-\`\`\`
+```
 
 Then open \`http://<server-IP>:3000\`
 
 ## Project structure
 
-\`\`\`
+```
 ├── docker-compose.yml
 ├── logstash/
 │   ├── pipelines.yml
