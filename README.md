@@ -1,6 +1,6 @@
 # ElkStack-Sim — Elastic Stack from Scratch
 
-A hand-built (not directly cloned) Elastic Stack — Elasticsearch, Logstash, Beats, Kibana — powering a simple movie search app.
+A  Elastic Stack — Elasticsearch, Logstash, Beats, Kibana — powering a simple movie search app.
 
 ## Architecture / data flow
 
