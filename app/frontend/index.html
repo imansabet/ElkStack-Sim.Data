@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>Elastiflix — یه دموی واقعی از Elastic Stack</title>
+<style>
+  :root{
+    --bg:#0b0f14; --card:#131a22; --accent:#00bfa5; --text:#e6edf3; --muted:#8b96a3;
+    --border:#223140;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Tahoma,Vazirmatn,sans-serif;background:var(--bg);color:var(--text);}
+  .wrap{max-width:980px;margin:0 auto;padding:32px 20px 80px;}
+  h1{font-size:28px;margin-bottom:4px}
+  .sub{color:var(--muted);margin-bottom:32px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:32px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px}
+  .card h3{margin:0 0 8px;color:var(--accent);font-size:17px}
+  .card p{margin:0;color:var(--muted);font-size:14px;line-height:1.7}
+  .section-title{font-size:20px;margin:36px 0 14px;border-right:4px solid var(--accent);padding-right:10px}
+  .filebtns{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+  .filebtns button{background:var(--card);border:1px solid var(--border);color:var(--text);
+    padding:9px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit}
+  .filebtns button:hover, .filebtns button.active{border-color:var(--accent);color:var(--accent)}
+  pre{direction:ltr;text-align:left;background:#0a1420;border:1px solid var(--border);border-radius:10px;padding:16px;
+    overflow-x:auto;font-size:12.5px;line-height:1.6;color:#c9d6de;max-height:420px}
+  .file-desc{color:var(--muted);font-size:13.5px;margin:0 0 10px}
+  .cta{display:flex;justify-content:center;margin-top:44px}
+  .cta button{background:var(--accent);color:#00251f;border:none;padding:16px 40px;
+    font-size:17px;font-weight:bold;border-radius:30px;cursor:pointer}
+  .cta button:hover{opacity:.9}
+
+  /* app screen */
+  #app-screen{display:none}
+  .searchbar{display:flex;gap:8px;margin-bottom:24px}
+  .searchbar input{flex:1;padding:14px 16px;border-radius:10px;border:1px solid var(--border);
+    background:var(--card);color:var(--text);font-size:15px}
+  .searchbar button{padding:14px 22px;border-radius:10px;border:none;background:var(--accent);
+    color:#00251f;font-weight:bold;cursor:pointer}
+  .results{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+  .movie{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+  .movie img{width:100%;height:280px;object-fit:cover;background:#1c2733}
+  .movie .info{padding:12px}
+  .movie h4{margin:0 0 6px;font-size:15px}
+  .movie .meta{color:var(--muted);font-size:12px;margin-bottom:6px}
+  .back-link{color:var(--muted);cursor:pointer;text-decoration:underline;font-size:13px}
+  .count{color:var(--muted);margin-bottom:16px;font-size:13px}
+</style>
+</head>
+<body>
+
+<div class="wrap" id="landing-screen">
+  <h1>🎬 Elastiflix</h1>
+  <p class="sub">یه دموی واقعی از Elastic Stack — Elasticsearch, Logstash, Beats و Kibana با هم روی یه پروژه‌ی واقعی</p>
+
+  <div class="section-title">هر بخش این استک چیکار می‌کنه؟</div>
+  <div class="grid">
+    <div class="card">
+      <h3>🔍 Elasticsearch</h3>
+      <p>موتور جستجو و پایگاه‌داده‌ست. اینجا ۶٬۹۵۹ فیلم رو ذخیره و قابل جستجو کرده. هر چیزی که سرچ می‌کنی، از همینجا میاد.</p>
+    </div>
+    <div class="card">
+      <h3>⚙️ Logstash</h3>
+      <p>خط لوله‌ی پردازش دیتاست. فایل خام فیلم‌ها رو خونده، فیلدهای ناقص رو ساخته (مثل user_score)، رکوردهای بی‌کیفیت رو حذف کرده و توی Elasticsearch گذاشته. لاگ‌های اپ رو هم از Beats می‌گیره و پردازش می‌کنه.</p>
+    </div>
+    <div class="card">
+      <h3>📡 Beats</h3>
+      <p>Filebeat لاگ‌های کانتینر اپ رو جمع و به Logstash می‌فرسته. Metricbeat هم متریک CPU/RAM/شبکه‌ی همه‌ی کانتینرها و خود Elasticsearch رو مستقیم به Elasticsearch می‌فرسته.</p>
+    </div>
+    <div class="card">
+      <h3>📊 Kibana</h3>
+      <p>لایه‌ی نمایشیه. هرچی تو Elasticsearch باشه (فیلم‌ها، لاگ‌ها، متریک‌ها) رو می‌شه اینجا جستجو، فیلتر و داشبورد ساخت.</p>
+    </div>
+  </div>
+
+  <div class="section-title">فایل‌های کانفیگ همین پروژه</div>
+  <p class="file-desc">این‌ها فایل‌های واقعی‌ای هستن که این پروژه رو سرپا نگه داشتن — روی همین سرور نوشته شدن، هیچ‌کدوم کپی مستقیم نیست.</p>
+  <div class="filebtns" id="filebtns"></div>
+  <p class="file-desc" id="file-desc-text"></p>
+  <pre id="file-content">یکی از دکمه‌های بالا رو بزن تا محتواش رو ببینی.</pre>
+
+  <div class="cta">
+    <button onclick="goToApp()">Lets See In Action</button>
+  </div>
+</div>
+
+<div class="wrap" id="app-screen">
+  <p class="back-link" onclick="goToLanding()">← برگشت به توضیحات</p>
+  <h1>🎬 جستجوی فیلم</h1>
+  <p class="sub">این جستجو مستقیم از Elasticsearch میاد — نتیجه‌ی همون pipeline که دیدی</p>
+  <div class="searchbar">
+    <input id="q" type="text" placeholder="اسم فیلم، ژانر یا کلمه‌ای از خلاصه‌ی داستان...">
+    <button onclick="search()">جستجو</button>
+  </div>
+  <div class="count" id="count"></div>
+  <div class="results" id="results"></div>
+</div>
+
+<script>
+const FILES = {
+  "docker-compose.yml": {
+    desc: "کل استک (۶ سرویس: ES, Kibana, Logstash, Metricbeat, Filebeat, اپ) با یه دستور بالا میاد.",
+    content: `services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms2g -Xmx2g
+    mem_limit: 4g
+    ports: ["9200:9200"]
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.15.0
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports: ["5601:5601"]
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.15.0
+    environment:
+      - ES_HOST=http://elasticsearch:9200
+    volumes:
+      - ./logstash/pipeline:/usr/share/logstash/pipeline:ro
+      - ./logstash/pipelines.yml:/usr/share/logstash/config/pipelines.yml:ro
+      - ./logstash/templates:/usr/share/logstash/templates:ro
+      - ./data:/data:ro
+    ports: ["9600:9600", "5044:5044"]
+
+  metricbeat:
+    image: docker.elastic.co/beats/metricbeat:8.15.0
+    volumes:
+      - ./metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.15.0
+    volumes:
+      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro`
+  },
+  "movies.conf (Logstash)": {
+    desc: "pipeline اصلی: فایل خام فیلم‌ها رو می‌خونه، تمیز و enrich می‌کنه، به Elasticsearch می‌فرسته.",
+    content: `input {
+  file {
+    path => "/data/movies.ndjson"
+    start_position => "beginning"
+    sincedb_path => "/dev/null"
+    codec => json
+    mode => "read"
+  }
+}
+
+filter {
+  mutate { remove_field => ["@version","event","log","host","path"] }
+  mutate { convert => { "id" => "string" } }
+
+  # user_score تو دیتای خام وجود نداره؛ از vote_average می‌سازیمش
+  if [vote_average] {
+    ruby { code => "event.set('user_score', event.get('vote_average').to_f)" }
+  }
+
+  if [release_date] == "" {
+    mutate { remove_field => ["release_date"] }
+  }
+
+  # فیلم بدون عنوان بی‌فایده‌ست
+  if ![title] or [title] == "" { drop {} }
+}
+
+output {
+  elasticsearch {
+    hosts => ["\${ES_HOST}"]
+    index => "elastiflix-movies"
+    document_id => "%{id}"
+    manage_template => true
+    template => "/usr/share/logstash/templates/movies-template.json"
+    template_name => "elastiflix-movies"
+  }
+}`
+  },
+  "logs.conf (Logstash)": {
+    desc: "pipeline دوم: لاگ‌های اپ رو از Filebeat می‌گیره و به ایندکس روزانه‌ی لاگ می‌فرسته.",
+    content: `input {
+  beats { port => 5044 }
+}
+
+output {
+  elasticsearch {
+    hosts => ["\${ES_HOST}"]
+    index => "elastiflix-logs-%{+YYYY.MM.dd}"
+  }
+}`
+  },
+  "movies-template.json": {
+    desc: "نقشه‌ی داده (mapping) — قبل از ورود اولین فیلم، به Elasticsearch می‌گه هر فیلد چه نوعیه.",
+    content: `{
+  "index_patterns": ["elastiflix-movies"],
+  "template": {
+    "mappings": {
+      "properties": {
+        "id":            { "type": "keyword" },
+        "title":         { "type": "text" },
+        "overview":      { "type": "text" },
+        "genres":        { "type": "keyword" },
+        "release_date":  { "type": "date", "format": "yyyy-MM-dd" },
+        "vote_average":  { "type": "float" },
+        "user_score":    { "type": "float" },
+        "popularity":    { "type": "float" },
+        "runtime":       { "type": "integer" }
+      }
+    }
+  }
+}`
+  },
+  "metricbeat.yml": {
+    desc: "متریک تمام کانتینرها (CPU/RAM/شبکه) و وضعیت Elasticsearch رو مستقیم به ES می‌فرسته.",
+    content: `metricbeat.modules:
+  - module: docker
+    metricsets: ["container","cpu","memory","network","diskio"]
+    hosts: ["unix:///var/run/docker.sock"]
+    period: 10s
+
+  - module: elasticsearch
+    metricsets: ["node","node_stats"]
+    hosts: ["http://elasticsearch:9200"]
+
+output.elasticsearch:
+  hosts: ["http://elasticsearch:9200"]`
+  },
+  "filebeat.yml": {
+    desc: "لاگ کانتینر backend اپ رو دنبال می‌کنه و به Logstash (نه مستقیم ES) می‌فرسته.",
+    content: `filebeat.autodiscover:
+  providers:
+    - type: docker
+      hints.enabled: true
+      templates:
+        - condition:
+            contains:
+              docker.container.name: "backend"
+          config:
+            - type: container
+              paths:
+                - "/var/lib/docker/containers/\${data.docker.container.id}/*.log"
+
+output.logstash:
+  hosts: ["logstash:5044"]`
+  }
+};
+
+const filebtns = document.getElementById('filebtns');
+Object.keys(FILES).forEach((name, i) => {
+  const b = document.createElement('button');
+  b.textContent = name;
+  b.onclick = () => showFile(name, b);
+  filebtns.appendChild(b);
+  if (i === 0) showFile(name, b);
+});
+
+function showFile(name, btn) {
+  document.querySelectorAll('#filebtns button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('file-desc-text').textContent = FILES[name].desc;
+  document.getElementById('file-content').textContent = FILES[name].content;
+}
+
+function goToApp() {
+  document.getElementById('landing-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'block';
+}
+function goToLanding() {
+  document.getElementById('app-screen').style.display = 'none';
+  document.getElementById('landing-screen').style.display = 'block';
+}
+
+async function search() {
+  const q = document.getElementById('q').value;
+  const res = document.getElementById('results');
+  const count = document.getElementById('count');
+  res.innerHTML = 'در حال جستجو...';
+  try {
+    const r = await fetch('/api/search?q=' + encodeURIComponent(q));
+    const data = await r.json();
+    count.textContent = data.count + ' نتیجه';
+    res.innerHTML = '';
+    data.results.forEach(m => {
+      const el = document.createElement('div');
+      el.className = 'movie';
+      const poster = m.poster_path
+        ? 'https://image.tmdb.org/t/p/w300' + m.poster_path
+        : '';
+      el.innerHTML = `
+        ${poster ? `<img src="${poster}" onerror="this.style.display='none'">` : ''}
+        <div class="info">
+          <h4>${m.title || '(بدون عنوان)'}</h4>
+          <div class="meta">${(m.genres||[]).join(', ')} · ${m.release_date || '?'} · ⭐ ${m.vote_average ?? '-'}</div>
+        </div>`;
+      res.appendChild(el);
+    });
+  } catch (e) {
+    res.innerHTML = 'خطا در جستجو';
+  }
+}
+document.getElementById('q').addEventListener('keydown', e => { if (e.key === 'Enter') search(); });
+search();
+</script>
+</body>
+</html>

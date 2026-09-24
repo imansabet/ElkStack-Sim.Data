@@ -1,0 +1,22 @@
+{
+  "index_patterns": ["elastiflix-movies"],
+  "priority": 200,
+  "template": {
+    "settings": { "number_of_shards": 1, "number_of_replicas": 0, "refresh_interval": "5s" },
+    "mappings": {
+      "properties": {
+        "id":            { "type": "keyword" },
+        "title":         { "type": "text" },
+        "overview":      { "type": "text" },
+        "genres":        { "type": "keyword" },
+        "release_date":  { "type": "date", "format": "yyyy-MM-dd" },
+        "vote_average":  { "type": "float" },
+        "vote_count":    { "type": "integer" },
+        "user_score":    { "type": "float" },
+        "popularity":    { "type": "float" },
+        "runtime":       { "type": "integer" },
+        "adult":         { "type": "boolean" }
+      }
+    }
+  }
+}

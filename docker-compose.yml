@@ -1,0 +1,116 @@
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms2g -Xmx2g
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    mem_limit: 4g
+    volumes:  
+      - es-data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    networks:
+      - elk
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.15.0
+    container_name: kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - SERVER_PUBLICBASEURL=http://192.168.12.22:5601
+    mem_limit: 1g
+    ports:
+      - "5601:5601"      
+    networks:
+      - elk
+    depends_on:
+      - elasticsearch      
+  
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.15.0    
+    container_name: logstash
+    environment:
+      - ES_HOST=http://elasticsearch:9200
+      - LS_JAVA_OPTS=-Xms512m -Xmx512m
+    mem_limit: 1g
+    volumes:
+      - ./logstash/pipeline:/usr/share/logstash/pipeline:ro
+      - ./logstash/pipelines.yml:/usr/share/logstash/config/pipelines.yml:ro
+      - ./logstash/templates:/usr/share/logstash/templates:ro
+      - ./data:/data:ro
+    ports:
+      - "9600:9600"
+    networks:
+      - elk
+    depends_on:
+      - elasticsearch
+
+
+  metricbeat:
+    image: docker.elastic.co/beats/metricbeat:8.15.0
+    container_name: metricbeat
+    user: root
+    environment:
+      - LS_JAVA_OPTS=-Xms256m -Xmx256m
+    mem_limit: 512m
+    volumes:
+      - ./metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - elk
+    depends_on:
+      - elasticsearch
+      - kibana
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.15.0
+    container_name: filebeat
+    user: root
+    volumes:
+      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    mem_limit: 256m
+    networks:
+      - elk
+    depends_on:
+      - logstash
+
+
+  app:
+    build:
+      context: ./app/backend
+      args:
+        HTTP_PROXY: http://192.168.12.99:8888
+        HTTPS_PROXY: http://192.168.12.99:8888
+    container_name: elastiflix-app
+    environment:
+      - ES_HOST=http://elasticsearch:9200
+      - PORT=3000
+    volumes:
+      - ./app/frontend:/app/frontend:ro
+    ports:
+      - "3000:3000"
+    networks:
+      - elk
+    depends_on:
+      - elasticsearch
+      - logstash
+
+
+
+networks: 
+  elk:
+    driver: bridge
+
+volumes:
+  es-data:  
+          
+          
+
