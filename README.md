@@ -4,7 +4,7 @@ A hand-built (not directly cloned) Elastic Stack — Elasticsearch, Logstash, Be
 
 ## Architecture / data flow
 
-\`\`\`mermaid
+```mermaid
 flowchart LR
     subgraph Data["Data source"]
         M["movies.json.gz<br/>(6,959 movies)"]
@@ -31,7 +31,7 @@ flowchart LR
     APP -->|"JSON logs"| FB -->|"beats protocol :5044"| LS2 --> ES
     MB -->|"Docker + ES metrics"| ES
     ES --> KB
-\`\`\`
+```
 
 ## What each service does
 
@@ -70,5 +70,3 @@ Then open \`http://<server-IP>:3000\`
     └── frontend/  # landing page + search UI
 \`\`\`
 
-## Credits
-Inspired by the [original README-ELK.md](https://github.com/LondheShubham153/Elastiflix/blob/main/README-ELK.md) — every config here was rewritten from scratch, not copied.
