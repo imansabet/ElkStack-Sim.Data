@@ -68,5 +68,5 @@ Then open \`http://<server-IP>:3000\`
 └── app/
     ├── backend/   # Express + search endpoint
     └── frontend/  # landing page + search UI
-\`\`\`
+```
 
